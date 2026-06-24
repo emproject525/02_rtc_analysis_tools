@@ -12,9 +12,11 @@ docs/                Architecture and protocol notes.
 import "peer-analyst";
 
 const peer = new RTCPeerConnection();
-window.PeerAnalyst.observe(peer, { /* options */ });
+window.PeerAnalyst.observe(peer, {
+  /* options */
+});
 ```
 
 It builds two bundles: an ESM bundle for `import`, and an IIFE bundle that injects the global for `<script>` usage.
 
-`api/` is a Next.js project. It exposes an API route that receives the reports sent by the SDK, and renders the collected connection state / quality metrics on a dashboard page.
+`server/` is a Next.js project. It exposes an API route that receives the reports sent by the SDK, and renders the collected connection state / quality metrics on a dashboard page.
