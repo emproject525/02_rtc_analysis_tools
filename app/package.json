@@ -1,4 +1,29 @@
 {
   "name": "@rtc/peer-analyst",
-  "private": true
+  "private": true,
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "module": "./dist/peer-analyst.es.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/peer-analyst.es.js"
+    }
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@microsoft/api-extractor": "^7.58.9",
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2",
+    "vite": "^8.0.16",
+    "vite-plugin-dts": "^5.0.2"
+  }
 }
