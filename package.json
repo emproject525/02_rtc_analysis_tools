@@ -1,0 +1,5 @@
+{
+  "name": "02-rtc-analysis-tools",
+  "private": true,
+  "packageManager": "pnpm@11.7.0"
+}
