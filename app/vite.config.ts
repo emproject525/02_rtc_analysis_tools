@@ -11,7 +11,8 @@ export default defineConfig({
     lib: {
       entry: fileURLToPath(new URL("./src/index.ts", import.meta.url)),
       name: "PeerAnalyst",
-      formats: ["es", "iife"],
+      // 즉시 실행 함수 (function (){})() 형태로 생성
+      formats: ["iife"],
       fileName: (format) => `peer-analyst.${format}.js`,
     },
   },

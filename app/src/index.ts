@@ -1,14 +1,37 @@
-export type ObserveOptions = {
-  /** Collector endpoint the SDK POSTs reports to. */
-  serverUrl?: string;
-};
+import { PeerMonitor, type ObserveOptions } from "./lib";
+
+export type { ObserveOptions };
 
 const PeerAnalyst = {
-  observe(_peer: RTCPeerConnection, _options: ObserveOptions = {}): void {
-    // TODO: subscribe to state changes + poll getStats()
+  monitors: new Map<RTCPeerConnection, PeerMonitor>(),
+
+  /**
+   * peer 감시 시작. 같은 인스턴스가 이미 감시 중이면 기존 monitor를 반환(멱등).
+   * peerId 미지정 시 자동 발급.
+   */
+  observe(peer: RTCPeerConnection, options: ObserveOptions = {}) {
+    const existing = this.monitors.get(peer);
+    if (existing) return existing;
+
+    const id = options.peerId ?? crypto.randomUUID();
+    const monitor = new PeerMonitor(peer, id, options);
+    this.monitors.set(peer, monitor);
+    return monitor;
   },
-  unobserve(_peer: RTCPeerConnection): void {
-    // TODO: tear down subscriptions + polling
+
+  /** 특정 peer 감시 종료 + 정리. */
+  unobserve(peer: RTCPeerConnection): void {
+    const monitor = this.monitors.get(peer);
+    if (!monitor) return;
+
+    monitor.dispose();
+    this.monitors.delete(peer);
+  },
+
+  /** 모든 peer 감시 종료. */
+  close(): void {
+    this.monitors.forEach((monitor) => monitor.dispose());
+    this.monitors.clear();
   },
 };
 
