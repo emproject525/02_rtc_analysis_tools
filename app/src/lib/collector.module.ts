@@ -117,5 +117,15 @@ export class Collector {
       currentDirection: transceiver.currentDirection,
       senderTrackId: transceiver.sender.track?.id ?? null,
       receiverTrackId: transceiver.receiver.track?.id ?? null,
+      // simulcast 레이어/maxBitrate/active는 getStats엔 없고 sender에만 있다.
+      senderEncodings: transceiver.sender
+        .getParameters()
+        .encodings.map((encoding) => ({
+          rid: encoding.rid,
+          active: encoding.active,
+          maxBitrate: encoding.maxBitrate,
+          scaleResolutionDownBy: encoding.scaleResolutionDownBy,
+          maxFramerate: encoding.maxFramerate,
+        })),
     }));
 }

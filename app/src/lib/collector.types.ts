@@ -7,6 +7,19 @@ export interface ConnectionStateSnapshot {
 }
 
 /**
+ * sender.getParameters().encodings 1개 — simulcast 레이어 설정.
+ * maxBitrate/active/scale 등은 getStats에 안 나오고 sender에만 있다.
+ */
+export interface EncodingSnapshot {
+  /** simulcast 레이어 식별자. 단일 스트림이면 보통 없음. */
+  rid?: string;
+  active?: boolean;
+  maxBitrate?: number;
+  scaleResolutionDownBy?: number;
+  maxFramerate?: number;
+}
+
+/**
  * getTransceivers() 스냅샷 — getStats 줄(ssrc)을 트랙으로 라벨링하기 위한 메타.
  * 라이브 폴링 대상이 아니라 collect() 시점의 매핑 정보.
  */
@@ -16,6 +29,8 @@ export interface TransceiverSnapshot {
   currentDirection: RTCRtpTransceiverDirection | null;
   senderTrackId: string | null;
   receiverTrackId: string | null;
+  /** sender의 simulcast 레이어 설정 (없으면 빈 배열). */
+  senderEncodings: EncodingSnapshot[];
 }
 
 /**

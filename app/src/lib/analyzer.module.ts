@@ -9,12 +9,13 @@ import type { Report } from "./analyzer.types";
 export class Analyzer {
   private _prev: RawSample | null = null;
 
-  analyze = (raw: RawSample, peerId: string): Report => {
+  analyze = (raw: RawSample, peerId: string, startedAt: number): Report => {
     const prev = this._prev;
     this._prev = raw;
 
     const report: Report = {
       peerId,
+      startedAt,
       timestamp: Date.now(),
       connection: raw.state,
       transport: {},

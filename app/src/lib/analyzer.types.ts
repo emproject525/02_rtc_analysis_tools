@@ -45,6 +45,8 @@ export interface TrackReport {
  */
 export interface Report {
   peerId: string;
+  /** observe 시작 시각 (epoch ms) — 연결 지속시간 = timestamp − startedAt. */
+  startedAt: number;
   /** Report 생성 시각 (epoch ms). */
   timestamp: number;
   connection: ConnectionStateSnapshot;

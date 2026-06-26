@@ -15,6 +15,8 @@ export class PeerMonitor {
   private readonly _analyzer: Analyzer;
   private readonly _reporter: Reporter;
   private readonly _timer: ReturnType<typeof setInterval>;
+  /** observe 시작 시각 (epoch ms) — 연결 지속시간 계산 기준. */
+  readonly startedAt = Date.now();
 
   constructor(
     readonly peer: RTCPeerConnection,
@@ -30,7 +32,7 @@ export class PeerMonitor {
   /** 폴링 1회: 수집 → 가공 → 출력. */
   private _tick = async () => {
     const raw = await this._collector.collect();
-    const report = this._analyzer.analyze(raw, this.id);
+    const report = this._analyzer.analyze(raw, this.id, this.startedAt);
     this._reporter.send(report);
   };
 
