@@ -6,7 +6,13 @@ import dts from "vite-plugin-dts";
 // Library mode: build an ESM bundle for `import`, and an IIFE bundle that
 // exposes the global `PeerAnalyst` for `<script>` usage.
 export default defineConfig({
-  plugins: [dts({ include: ["src"], bundleTypes: true })],
+  plugins: [
+    dts({
+      include: ["src"],
+      exclude: ["src/**/*.test.ts"],
+      bundleTypes: true,
+    }),
+  ],
   build: {
     lib: {
       entry: fileURLToPath(new URL("./src/index.ts", import.meta.url)),

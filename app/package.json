@@ -17,13 +17,15 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.58.9",
     "@types/node": "^22.10.2",
     "typescript": "^5.7.2",
     "vite": "^8.0.16",
-    "vite-plugin-dts": "^5.0.2"
+    "vite-plugin-dts": "^5.0.2",
+    "vitest": "^4.1.9"
   }
 }
