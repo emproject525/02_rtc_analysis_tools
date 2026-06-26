@@ -1,4 +1,4 @@
-import type { Report } from "./analyzer.types";
+import type { Report } from "../analyzer/analyzer.types";
 
 /**
  * 출력 채널 한 곳의 계약. console / callback / server가 각각 구현.

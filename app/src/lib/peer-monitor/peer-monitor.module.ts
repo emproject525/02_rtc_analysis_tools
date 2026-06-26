@@ -1,6 +1,6 @@
-import { Analyzer } from "./analyzer.module";
-import { Collector } from "./collector.module";
-import { Reporter } from "./reporter.module";
+import { Analyzer } from "../analyzer";
+import { Collector } from "../collector";
+import { Reporter } from "../reporter";
 import type { ObserveOptions } from "./peer-monitor.types";
 
 const DEFAULT_INTERVAL = 2000;

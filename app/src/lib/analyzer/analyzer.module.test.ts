@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Analyzer } from "./analyzer.module";
-import type { RawSample, TransceiverSnapshot } from "./collector.types";
+import type { RawSample, TransceiverSnapshot } from "../collector.types";
 
 const TRANSCEIVERS: TransceiverSnapshot[] = [
   {

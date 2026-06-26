@@ -7,7 +7,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "build:app": "pnpm --filter @rtc/app build"
+    "build:app": "pnpm --filter @rtc/peer-analyst build"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -4,7 +4,7 @@ import {
   bitrate,
   packetLossRate,
   ratePerSecond,
-} from "./analyzer.derive";
+} from "../analyzer.derive";
 
 describe("ratePerSecond", () => {
   it("누적 증가분을 초당으로 환산", () => {

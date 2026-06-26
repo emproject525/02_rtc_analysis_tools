@@ -1,4 +1,4 @@
-import type { RawSample, TransceiverSnapshot } from "./collector.types";
+import type { RawSample, TransceiverSnapshot } from "../collector";
 import type { Report, TrackReport, TransportReport } from "./analyzer.types";
 import {
   type CandidatePairStats,

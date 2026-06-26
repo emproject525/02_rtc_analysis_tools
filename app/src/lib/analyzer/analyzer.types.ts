@@ -1,4 +1,4 @@
-import type { ConnectionStateSnapshot } from "./collector.types";
+import type { ConnectionStateSnapshot } from "../collector";
 
 /** 선택된 candidate-pair / transport 기반 연결 경로 정보 (peer당 1개). */
 export interface TransportReport {

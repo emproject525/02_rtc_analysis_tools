@@ -1,4 +1,4 @@
-import type { Report } from "./analyzer.types";
+import type { Report } from "../analyzer";
 
 /** observe(peer, options)로 넘기는 감시 옵션. */
 export interface ObserveOptions {

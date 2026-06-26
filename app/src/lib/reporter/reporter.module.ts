@@ -1,5 +1,5 @@
-import type { Report } from "./analyzer.types";
-import type { ObserveOptions } from "./peer-monitor.types";
+import type { Report } from "../analyzer/analyzer.types";
+import type { ObserveOptions } from "../peer-monitor/peer-monitor.types";
 
 /**
  * 가공된 Report를 설정된 출력 대상(콘솔 / 콜백 / 서버)으로 fan-out 한다.
