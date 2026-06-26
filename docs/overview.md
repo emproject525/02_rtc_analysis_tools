@@ -15,7 +15,7 @@ window.PeerAnalyst.observe(peer, {
 
 1. 서비스 페이지가 SDK를 import 한다. → 전역에 `PeerAnalyst` 주입.
 2. 기존에 만든 `RTCPeerConnection`을 `observe(peer, options)`로 넘긴다.
-3. SDK가 해당 연결의 상태 변화 이벤트를 구독하고 `getStats()`를 주기적으로 폴링한다.
+3. SDK가 해당 연결의 상태 변화 이벤트를 구독해 **전이 버퍼**에 쌓고, `getStats()`를 주기적으로 폴링한다. 폴링 때 버퍼에 모인 전이를 함께 비워 보내므로, 폴링 간격 안에서 짧게 일어난 전이(`connected→disconnected→connected` 등)나 `icecandidateerror` 같은 순간 이벤트도 누락되지 않는다.
 4. 수집한 원시 데이터를 RTT·지터·패킷손실·비트레이트 등 지표로 가공한다.
 5. 결과를 출력 대상(콘솔 / 콜백 / 수집 서버)으로 내보낸다.
 6. 수집 서버(`server/`)가 데이터를 받아 대시보드 화면에 렌더링한다.
@@ -29,6 +29,7 @@ window.PeerAnalyst.observe(peer, {
 
 - 전역 주입 (`window.PeerAnalyst`) + `observe()` / `unobserve()`
 - 연결 상태 추적 (`connectionState`, `iceConnectionState`, `iceGatheringState`, `signalingState`)
+- 폴링 간 상태 전이 버퍼링 (집계 간격 안의 짧은 전이 · `icecandidateerror` 보존)
 - `getStats()` 주기 폴링
 - 핵심 품질 지표 추출 (RTT, jitter, packet loss, bitrate)
 - 콘솔 / 콜백 출력 + 수집 서버 전송

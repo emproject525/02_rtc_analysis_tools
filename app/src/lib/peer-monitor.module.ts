@@ -34,9 +34,15 @@ export class PeerMonitor {
     this._reporter.send(report);
   };
 
-  /** 감시 종료 — 타이머/리스너 정리 + 마지막 배치 flush. */
-  dispose = () => {
+  /** 감시 종료 — 마지막 폴링으로 잔여 전이 flush + 타이머/리스너 정리. */
+  dispose = async () => {
     clearInterval(this._timer);
+    // 직전 collect 이후 버퍼에 쌓인 상태 전이/ICE 에러까지 마지막으로 내보낸다.
+    try {
+      await this._tick();
+    } catch {
+      // 종료 중 getStats 실패(이미 닫힌 연결 등)는 무시.
+    }
     this._collector.dispose();
     this._reporter.dispose();
   };
