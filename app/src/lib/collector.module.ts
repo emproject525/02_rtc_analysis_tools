@@ -21,6 +21,9 @@ const STATE_KINDS = [
   "signalingState",
 ] as const;
 
+/** getStats 실패 시 폴백용 빈 리포트. */
+const EMPTY_STATS: RTCStatsReport = new Map();
+
 /**
  * peer에서 읽는 모든 데이터를 한 곳에서 담당한다.
  * - 연결 상태 이벤트(push)를 구독해 최신 상태를 캐싱
@@ -40,7 +43,14 @@ export class Collector {
 
   /** 폴링 1회 — 가공 전 원본 묶음을 만들고 버퍼를 비운다. */
   collect = async (): Promise<RawSample> => {
-    const stats = await this._peer.getStats();
+    // getStats 실패(연결 close 직후 등)에도 멈추지 않게 빈 stats로 폴백한다.
+    // 상태/버퍼는 stats와 무관하므로 그대로 실어 보내 전이·에러 유실을 막는다.
+    let stats: RTCStatsReport;
+    try {
+      stats = await this._peer.getStats();
+    } catch {
+      stats = EMPTY_STATS;
+    }
     const sample: RawSample = {
       timestamp: performance.now(),
       state: this._state,
@@ -110,22 +120,28 @@ export class Collector {
     signalingState: this._peer.signalingState,
   });
 
-  private _snapshotTransceivers = (): TransceiverSnapshot[] =>
-    this._peer.getTransceivers().map((transceiver) => ({
-      mid: transceiver.mid,
-      direction: transceiver.direction,
-      currentDirection: transceiver.currentDirection,
-      senderTrackId: transceiver.sender.track?.id ?? null,
-      receiverTrackId: transceiver.receiver.track?.id ?? null,
-      // simulcast 레이어/maxBitrate/active는 getStats엔 없고 sender에만 있다.
-      senderEncodings: transceiver.sender
-        .getParameters()
-        .encodings.map((encoding) => ({
-          rid: encoding.rid,
-          active: encoding.active,
-          maxBitrate: encoding.maxBitrate,
-          scaleResolutionDownBy: encoding.scaleResolutionDownBy,
-          maxFramerate: encoding.maxFramerate,
-        })),
-    }));
+  private _snapshotTransceivers = (): TransceiverSnapshot[] => {
+    // close 직후엔 getTransceivers/getParameters도 던질 수 있어 방어한다.
+    try {
+      return this._peer.getTransceivers().map((transceiver) => ({
+        mid: transceiver.mid,
+        direction: transceiver.direction,
+        currentDirection: transceiver.currentDirection,
+        senderTrackId: transceiver.sender.track?.id ?? null,
+        receiverTrackId: transceiver.receiver.track?.id ?? null,
+        // simulcast 레이어/maxBitrate/active는 getStats엔 없고 sender에만 있다.
+        senderEncodings: transceiver.sender
+          .getParameters()
+          .encodings.map((encoding) => ({
+            rid: encoding.rid,
+            active: encoding.active,
+            maxBitrate: encoding.maxBitrate,
+            scaleResolutionDownBy: encoding.scaleResolutionDownBy,
+            maxFramerate: encoding.maxFramerate,
+          })),
+      }));
+    } catch {
+      return [];
+    }
+  };
 }
