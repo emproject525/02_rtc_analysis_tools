@@ -9,6 +9,7 @@
 - push 이벤트는 즉시 보내지 않고 **전이 버퍼**에 쌓였다가 다음 pull(폴링) 때 함께 비워 나간다. 폴링 간격 안에서 짧게 일어난 상태 전이·`icecandidateerror`도 유실 없이 보존된다.
 - candidate / RTT / 대역폭은 트랙이 아니라 **연결(transport) 단위**라 peer 헤더에 둔다.
   (BUNDLE로 모든 트랙이 candidate-pair 하나를 공유)
+- 트랙은 **ssrc 단위로 한 항목/그래프**로 집계한다. `replaceTrack`은 ssrc가 유지돼(누적값 연속) 같은 항목으로 이어가고, 그 시점의 `track.id`만 노출해 콘텐츠 전환(예: 카메라→화면공유) 지점을 표시한다. 재협상으로 ssrc가 새로 생기면 **새 항목**, ssrc가 사라지면 그 항목은 **ended**로 표시하고 목록에 남긴다.
 
 ---
 
@@ -37,7 +38,7 @@
 
 - **track 정보**
   - kind (video / audio)
-  - track id 식별자
+  - track id 식별자 _(그 시점의 `track.id` — replaceTrack 시 바뀜, 시리즈는 ssrc로 유지)_
   - mid
   - 코덱 (mimeType, clockRate)
 - **receiver 설정**
@@ -60,7 +61,7 @@
 
 - **track 정보**
   - kind (video / audio)
-  - track id 식별자
+  - track id 식별자 _(그 시점의 `track.id` — replaceTrack 시 바뀜, 시리즈는 ssrc로 유지)_
   - mid
   - 코덱 (mimeType, clockRate)
 - **sender 설정**
