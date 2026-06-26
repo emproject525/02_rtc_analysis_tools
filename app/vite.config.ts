@@ -10,7 +10,7 @@ export default defineConfig({
     dts({
       include: ["src"],
       exclude: ["src/**/*.test.ts"],
-      bundleTypes: true,
+      bundleTypes: true, // true이면 @microsoft/api-extractor를 사용함 (optional peer)
     }),
   ],
   build: {
