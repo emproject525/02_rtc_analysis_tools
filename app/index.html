@@ -4,8 +4,25 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PeerAnalyst Playground</title>
+    <style>
+      body { font-family: sans-serif; margin: 16px; }
+      .row { display: flex; gap: 16px; }
+      .col { flex: 1; }
+      pre { background: #f4f4f4; padding: 8px; overflow: auto; height: 70vh; font-size: 11px; }
+      button { padding: 6px 12px; margin-right: 8px; }
+    </style>
   </head>
   <body>
-    <script type="module" src="/src/index.ts"></script>
+    <h1>PeerAnalyst loopback 스모크</h1>
+    <p>
+      <button id="start">start</button>
+      <button id="stop">stop</button>
+      <span id="status">idle</span>
+    </p>
+    <div class="row">
+      <div class="col"><h2>sender (outbound)</h2><pre id="sender-out"></pre></div>
+      <div class="col"><h2>receiver (inbound)</h2><pre id="receiver-out"></pre></div>
+    </div>
+    <script type="module" src="/src/playground.ts"></script>
   </body>
 </html>

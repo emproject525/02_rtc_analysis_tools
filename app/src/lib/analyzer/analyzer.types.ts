@@ -37,6 +37,15 @@ export interface TrackReport {
   rid?: string;
   /** transceiver currentDirection (sendrecv / recvonly …). */
   transceiverDirection?: RTCRtpTransceiverDirection;
+  // sender 설정 (outbound) — getStats엔 없고 transceiver encoding에서 rid로 매칭.
+  /** 레이어 활성 여부. */
+  active?: boolean;
+  /** 인코더 상한 비트레이트 (설정값, bps). */
+  maxBitrate?: number;
+  /** 원본 대비 해상도 축소 배율. */
+  scaleResolutionDownBy?: number;
+  /** 상한 프레임레이트 (설정값). */
+  maxFramerate?: number;
   /** mimeType (예: video/VP8). */
   codec?: string;
   /** bitrate (bps) — 직전 샘플과 미분한 파생값. */

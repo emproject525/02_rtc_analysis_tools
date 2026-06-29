@@ -10,7 +10,7 @@ export default defineConfig({
   plugins: [
     dts({
       include: ["src"],
-      exclude: ["src/**/*.test.ts"],
+      exclude: ["src/**/*.test.ts", "src/playground.ts"],
       bundleTypes: true, // true이면 @microsoft/api-extractor를 사용함 (optional peer)
     }),
   ],

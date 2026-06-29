@@ -194,6 +194,9 @@ describe("Analyzer.analyze", () => {
     expect(send.fractionLost).toBe(0.02);
     expect(send.roundTripTime).toBe(0.08);
     expect(send.targetBitrate).toBe(1_200_000);
+    // rid "hi"로 transceiver encoding 설정이 매칭돼 Report에 실린다.
+    expect(send.active).toBe(true);
+    expect(send.maxBitrate).toBe(2_000_000);
   });
 
   it("경로(transport)를 candidate-pair/candidate로 조인한다", () => {

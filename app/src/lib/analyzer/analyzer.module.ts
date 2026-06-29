@@ -156,6 +156,8 @@ const buildSend = (
     const remoteIn = remoteInBySsrc.get(cur.ssrc);
     const remoteInBefore = prevRemoteInBySsrc.get(cur.ssrc);
     const codec = statById<CodecStats>(raw.stats, cur.codecId)?.mimeType;
+    // rid로 sender encoding 설정을 매칭(단일 스트림이면 rid가 양쪽 다 undefined로 매칭).
+    const encoding = tx?.senderEncodings.find((e) => e.rid === cur.rid);
 
     return {
       direction: "outbound",
@@ -165,6 +167,10 @@ const buildSend = (
       rid: cur.rid,
       trackId: tx?.senderTrackId ?? null,
       transceiverDirection: tx?.currentDirection ?? undefined,
+      active: encoding?.active,
+      maxBitrate: encoding?.maxBitrate,
+      scaleResolutionDownBy: encoding?.scaleResolutionDownBy,
+      maxFramerate: encoding?.maxFramerate,
       codec,
       bitrate: bitrate(cur.bytesSent, before?.bytesSent, dtSec),
       // 손실은 상대가 보고하는 remote-inbound-rtp 기준 (우리 send를 상대가 받은 결과).
