@@ -13,6 +13,8 @@ export interface GraphPoint {
 const VW = 600;
 const VH = 130;
 const PAD = 8;
+/** 보이는 점 개수(고정 간격 창). 새 점은 오른쪽으로 쌓이고 꽉 차면 왼쪽으로 밀린다. */
+const WINDOW = 100;
 
 /** 호버 지점 트랙의 모든 지표를 [라벨, 값] 목록으로 (정의된 것만, 누적 포함). */
 const detailRows = (t: TrackReport): Array<[string, string]> => {
@@ -68,39 +70,41 @@ export function TrackGraph({
     null,
   );
 
-  const n = points.length;
+  // 최근 WINDOW개만 고정 간격으로. (점이 늘어도 간격이 안 좁아지고, 꽉 차면 스크롤)
+  const pts = points.slice(-WINDOW);
+  const n = pts.length;
   const max = Math.max(
     1,
-    ...points.map((p) => p.track.bitrate).filter((v): v is number => v != null),
+    ...pts.map((p) => p.track.bitrate).filter((v): v is number => v != null),
   );
-  const last = points[n - 1];
+  const last = pts[n - 1];
   const ended = last?.track.ended;
 
-  const xAt = (i: number) =>
-    n <= 1 ? PAD : PAD + (i / (n - 1)) * (VW - 2 * PAD);
+  const step = (VW - 2 * PAD) / (WINDOW - 1); // 점 개수와 무관한 고정 간격
+  const xAt = (j: number) => PAD + j * step;
   const yAt = (v: number) => VH - PAD - (v / max) * (VH - 2 * PAD);
 
   // 정의된 bitrate 구간만 선으로(undefined는 끊김 = 새 M).
   let d = "";
   let pen = false;
-  points.forEach((p, i) => {
+  pts.forEach((p, j) => {
     const v = p.track.bitrate;
     if (v == null) {
       pen = false;
       return;
     }
-    d += `${pen ? "L" : "M"}${xAt(i).toFixed(1)} ${yAt(v).toFixed(1)} `;
+    d += `${pen ? "L" : "M"}${xAt(j).toFixed(1)} ${yAt(v).toFixed(1)} `;
     pen = true;
   });
 
   const onMove = (e: MouseEvent<SVGSVGElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const frac = (e.clientX - rect.left) / rect.width;
-    const i = Math.max(0, Math.min(n - 1, Math.round(frac * (n - 1))));
-    setHover({ i, x: e.clientX, y: e.clientY });
+    const vbX = ((e.clientX - rect.left) / rect.width) * VW; // CSS px → viewBox 좌표
+    const j = Math.max(0, Math.min(n - 1, Math.round((vbX - PAD) / step)));
+    setHover({ i: j, x: e.clientX, y: e.clientY });
   };
 
-  const hp = hover ? points[hover.i] : null;
+  const hp = hover ? pts[hover.i] : null;
 
   return (
     <div
@@ -173,7 +177,7 @@ export function TrackGraph({
           }}
         >
           <div style={{ color: "#57606a", marginBottom: 4 }}>
-            +{((hp.t - points[0].t) / 1000).toFixed(0)}s
+            +{((hp.t - pts[0].t) / 1000).toFixed(0)}s
           </div>
           <table style={{ borderCollapse: "collapse" }}>
             <tbody>
