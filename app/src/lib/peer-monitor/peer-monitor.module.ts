@@ -36,6 +36,12 @@ export class PeerMonitor {
     this._reporter.send(report);
   };
 
+  /**
+   * 큐에 남은 Report를 강제 전송한다. 페이지 이탈 처리용.
+   * @param keepalive unload 중 호출이면 true.
+   */
+  flush = (keepalive = false) => this._reporter.flush(keepalive);
+
   /** 감시 종료 — 마지막 폴링으로 잔여 전이 flush + 타이머/리스너 정리. */
   dispose = async () => {
     clearInterval(this._timer);

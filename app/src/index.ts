@@ -46,6 +46,12 @@ declare global {
 // Side effect: importing the SDK injects the global onto `window`.
 if (typeof window !== "undefined") {
   window.PeerAnalyst = PeerAnalyst;
+  // 페이지 이탈 시 큐에 남은 Report를 keepalive로 마지막 전송한다.
+  // visibilitychange(hidden)엔 정리하지 않는다 — 백그라운드(예: 오디오 통화 지속)
+  // 에서도 집계를 계속하기 위함. 실제 unload 신호인 pagehide에서만 최종 flush.
+  window.addEventListener("pagehide", () => {
+    PeerAnalyst.monitors.forEach((monitor) => monitor.flush(true));
+  });
 }
 
 export default PeerAnalyst;
