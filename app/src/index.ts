@@ -1,6 +1,13 @@
 import { PeerMonitor, type ObserveOptions, SDK_VERSION } from "./lib";
 
 export type { ObserveOptions };
+// SDK ↔ 수집 서버가 공유하는 계약 타입.
+export type {
+  Report,
+  TrackReport,
+  TransportReport,
+  ReportEnvelope,
+} from "./lib";
 
 const PeerAnalyst = {
   /** SDK 버전 (package.json 단일 소스). */
