@@ -17,6 +17,7 @@ import {
   avgJitterBufferDelay,
   bitrate,
   packetLossRate,
+  retransmissionRate,
 } from "./analyzer.derive";
 
 /** mid → transceiver 스냅 (outbound trackId / direction 해결용). */
@@ -99,6 +100,13 @@ const buildRecv = (
         cur.packetsReceived,
         before?.packetsReceived,
       ),
+      retransmissionRate: retransmissionRate(
+        cur.retransmittedBytesReceived,
+        before?.retransmittedBytesReceived,
+        cur.bytesReceived,
+        before?.bytesReceived,
+      ),
+      fecPacketsReceived: cur.fecPacketsReceived,
       packetsReceived: cur.packetsReceived,
       jitter: cur.jitter,
       roundTripTime: remoteOut?.roundTripTime,
@@ -167,6 +175,13 @@ const buildSend = (
         before?.packetsSent,
       ),
       fractionLost: remoteIn?.fractionLost,
+      retransmissionRate: retransmissionRate(
+        cur.retransmittedBytesSent,
+        before?.retransmittedBytesSent,
+        cur.bytesSent,
+        before?.bytesSent,
+      ),
+      fecPacketsSent: cur.fecPacketsSent,
       packetsSent: cur.packetsSent,
       jitter: remoteIn?.jitter,
       roundTripTime: remoteIn?.roundTripTime,
@@ -184,6 +199,36 @@ const buildSend = (
 };
 
 /**
+ * 이번 폴링의 살아있는 트랙(live)을 ssrc 레지스트리(seen)와 병합한다.
+ * getStats는 매번 살아있는 ssrc만 주므로, 사라진 트랙을 화면에서 추적하려면
+ * 본 적 있는 ssrc를 누적해 둔다.
+ * - live에 있는 ssrc → 정상 갱신(ended:false)
+ * - seen엔 있는데 live엔 없는 ssrc → ended:true로 목록에 잔존
+ * (replaceTrack은 ssrc 유지라 같은 항목으로 이어지고, 새 ssrc면 새 항목이 된다)
+ */
+const mergeLifecycle = (
+  seen: Map<number, TrackReport>,
+  live: TrackReport[],
+): TrackReport[] => {
+  const liveSsrc = new Set<number>();
+  for (const track of live) {
+    if (track.ssrc == null) continue;
+    liveSsrc.add(track.ssrc);
+    seen.set(track.ssrc, { ...track, ended: false });
+  }
+
+  const out: TrackReport[] = [];
+  for (const [ssrc, track] of seen) {
+    out.push(liveSsrc.has(ssrc) ? track : { ...track, ended: true });
+  }
+  // ssrc가 없어 생명주기 추적이 안 되는 트랙도 누락 없이 포함.
+  for (const track of live) {
+    if (track.ssrc == null) out.push({ ...track, ended: false });
+  }
+  return out;
+};
+
+/**
  * raw 샘플을 정규화된 Report로 가공한다.
  * bitrate/손실률 등은 누적값 미분이라 직전 샘플을 내부에 보관한다.
  * (peer마다 Analyzer 1개 → 미분 상태 격리)
@@ -193,6 +238,10 @@ const buildSend = (
  */
 export class Analyzer {
   private _prev: RawSample | null = null;
+  // ssrc → 마지막 트랙 상태. _prev(직전 1개)와 별개로 "본 적 있는 ssrc 전체"를
+  // 보관해 ended를 추적한다. recv/send는 ssrc 공간이 달라 따로 둔다.
+  private _recvSeen = new Map<number, TrackReport>();
+  private _sendSeen = new Map<number, TrackReport>();
 
   analyze = (raw: RawSample, peerId: string, startedAt: number): Report => {
     const prev = this._prev;
@@ -207,13 +256,15 @@ export class Analyzer {
       timestamp: Date.now(),
       connection: raw.state,
       transport: buildTransport(raw.stats),
-      recv: buildRecv(raw, prev, dtSec, txByMid),
-      send: buildSend(raw, prev, dtSec, txByMid),
+      recv: mergeLifecycle(this._recvSeen, buildRecv(raw, prev, dtSec, txByMid)),
+      send: mergeLifecycle(this._sendSeen, buildSend(raw, prev, dtSec, txByMid)),
     };
   };
 
-  /** 직전 샘플 초기화 (의도적으로 미분 기준을 끊을 때). */
+  /** 직전 샘플 + 생명주기 레지스트리 초기화 (의도적으로 기준을 끊을 때). */
   reset = () => {
     this._prev = null;
+    this._recvSeen.clear();
+    this._sendSeen.clear();
   };
 }

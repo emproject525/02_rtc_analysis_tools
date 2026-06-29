@@ -52,6 +52,11 @@ export interface InboundRtpStats extends StatsBase {
   bytesReceived?: number;
   packetsReceived?: number;
   packetsLost?: number;
+  // 재전송/FEC는 RTP NACK/RTX·FEC로 받은 누적분 (UDP가 아니라 RTP 레벨 복구).
+  retransmittedPacketsReceived?: number;
+  retransmittedBytesReceived?: number;
+  fecPacketsReceived?: number;
+  fecPacketsDiscarded?: number;
   jitter?: number;
   framesPerSecond?: number;
   frameWidth?: number;
@@ -79,6 +84,10 @@ export interface OutboundRtpStats extends StatsBase {
   kind: "audio" | "video";
   bytesSent?: number;
   packetsSent?: number;
+  // 재전송/FEC 송신 누적. retransmittedBytesSent는 bytesSent에 이미 포함된 부분집합.
+  retransmittedPacketsSent?: number;
+  retransmittedBytesSent?: number;
+  fecPacketsSent?: number;
   framesPerSecond?: number;
   frameWidth?: number;
   frameHeight?: number;

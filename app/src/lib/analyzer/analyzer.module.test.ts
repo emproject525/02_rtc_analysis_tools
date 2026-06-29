@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Analyzer } from "./analyzer.module";
-import type { RawSample, TransceiverSnapshot } from "../collector.types";
+import type { RawSample, TransceiverSnapshot } from "../collector";
 
 const TRANSCEIVERS: TransceiverSnapshot[] = [
   {
@@ -209,6 +209,75 @@ describe("Analyzer.analyze", () => {
     expect(r.transport.dtlsState).toBe("connected");
     expect(r.transport.candidatePairState).toBe("succeeded");
     expect(r.transport.availableOutgoingBitrate).toBe(1_500_000);
+  });
+
+  it("재전송 바이트를 전체 바이트와 미분해 재전송률(%)을 채운다", () => {
+    const analyzer = new Analyzer();
+    analyzer.analyze(
+      sample(
+        1000,
+        report([
+          ...pathRecords(),
+          { ...outbound(10_000, 100), retransmittedBytesSent: 100 },
+        ]),
+      ),
+      "peer-1",
+      0,
+    );
+    // Δt=2s, 전체 +2000 중 재전송 +200 → 10%
+    const r = analyzer.analyze(
+      sample(
+        3000,
+        report([
+          ...pathRecords(),
+          {
+            ...outbound(12_000, 200),
+            retransmittedBytesSent: 300,
+            fecPacketsSent: 4,
+          },
+        ]),
+      ),
+      "peer-1",
+      0,
+    );
+    expect(r.send[0].retransmissionRate).toBe(10);
+    expect(r.send[0].fecPacketsSent).toBe(4);
+  });
+
+  it("사라진 ssrc는 ended:true로 목록에 남고, 살아있으면 ended:false", () => {
+    const analyzer = new Analyzer();
+    // 1차: send 트랙(ssrc 2222) 존재
+    analyzer.analyze(
+      sample(1000, report([...pathRecords(), outbound(2000, 50)])),
+      "peer-1",
+      0,
+    );
+    // 2차: outbound 사라짐(트랙 종료) → 목록에 ended로 잔존
+    const r = analyzer.analyze(
+      sample(3000, report([...pathRecords(), inbound(1000, 100, 5)])),
+      "peer-1",
+      0,
+    );
+    expect(r.send).toHaveLength(1);
+    expect(r.send[0].ssrc).toBe(2222);
+    expect(r.send[0].ended).toBe(true);
+    expect(r.recv[0].ended).toBe(false); // 살아있는 트랙
+  });
+
+  it("reset 후에는 ended 잔존 항목이 비워진다", () => {
+    const analyzer = new Analyzer();
+    analyzer.analyze(
+      sample(1000, report([...pathRecords(), outbound(2000, 50)])),
+      "peer-1",
+      0,
+    );
+    analyzer.reset();
+    const r = analyzer.analyze(
+      sample(3000, report([...pathRecords(), inbound(1000, 100, 5)])),
+      "peer-1",
+      0,
+    );
+    expect(r.send).toHaveLength(0); // 레지스트리 초기화로 ended 잔존 없음
   });
 
   it("카운터가 줄면(리셋) bitrate를 미분하지 않는다", () => {

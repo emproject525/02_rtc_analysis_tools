@@ -121,27 +121,41 @@ export class Collector {
   });
 
   private _snapshotTransceivers = (): TransceiverSnapshot[] => {
-    // close 직후엔 getTransceivers/getParameters도 던질 수 있어 방어한다.
+    // close 직후엔 getTransceivers 자체가 던질 수 있어 방어한다.
+    let transceivers: RTCRtpTransceiver[];
     try {
-      return this._peer.getTransceivers().map((transceiver) => ({
-        mid: transceiver.mid,
-        direction: transceiver.direction,
-        currentDirection: transceiver.currentDirection,
-        senderTrackId: transceiver.sender.track?.id ?? null,
-        receiverTrackId: transceiver.receiver.track?.id ?? null,
-        // simulcast 레이어/maxBitrate/active는 getStats엔 없고 sender에만 있다.
-        senderEncodings: transceiver.sender
-          .getParameters()
-          .encodings.map((encoding) => ({
-            rid: encoding.rid,
-            active: encoding.active,
-            maxBitrate: encoding.maxBitrate,
-            scaleResolutionDownBy: encoding.scaleResolutionDownBy,
-            maxFramerate: encoding.maxFramerate,
-          })),
-      }));
+      transceivers = this._peer.getTransceivers();
     } catch {
       return [];
     }
+    // 항목 단위로 격리한다. close/폴링 경합으로 특정 transceiver의
+    // getParameters/mid/track 접근이 던져도, 그 항목만 조용히 스킵해
+    // 한 예외로 이 폴링의 전체 매핑(trackId·encodings)이 날아가지 않게 한다.
+    // 스킵된 항목은 다음 폴링에 정상화되면 다시 들어온다.
+    const out: TransceiverSnapshot[] = [];
+    for (const transceiver of transceivers) {
+      try {
+        out.push({
+          mid: transceiver.mid,
+          direction: transceiver.direction,
+          currentDirection: transceiver.currentDirection,
+          senderTrackId: transceiver.sender.track?.id ?? null,
+          receiverTrackId: transceiver.receiver.track?.id ?? null,
+          // simulcast 레이어/maxBitrate/active는 getStats엔 없고 sender에만 있다.
+          senderEncodings: transceiver.sender
+            .getParameters()
+            .encodings.map((encoding) => ({
+              rid: encoding.rid,
+              active: encoding.active,
+              maxBitrate: encoding.maxBitrate,
+              scaleResolutionDownBy: encoding.scaleResolutionDownBy,
+              maxFramerate: encoding.maxFramerate,
+            })),
+        });
+      } catch {
+        // 이 transceiver만 스킵.
+      }
+    }
+    return out;
   };
 }

@@ -45,6 +45,12 @@ export interface TrackReport {
   packetLossRate?: number;
   /** 최근 구간 손실률 (0~1) — send는 remote-inbound-rtp 기준. */
   fractionLost?: number;
+  /** 재전송률 (%) — Δ재전송바이트 / Δ전체바이트, 미분 파생값. */
+  retransmissionRate?: number;
+  /** FEC 복구 패킷 누적 수신 (recv). */
+  fecPacketsReceived?: number;
+  /** FEC 패킷 누적 송신 (send). */
+  fecPacketsSent?: number;
   /** 누적 패킷 수 (recv). */
   packetsReceived?: number;
   /** 누적 패킷 수 (send). */
@@ -73,6 +79,8 @@ export interface TrackReport {
   /** 화질 제한 원인 (outbound): cpu / bandwidth / none. */
   qualityLimitationReason?: string;
   audioLevel?: number;
+  /** ssrc가 사라진 트랙 표시 — true면 끊긴 트랙(목록 잔존용). */
+  ended?: boolean;
 }
 
 /**
