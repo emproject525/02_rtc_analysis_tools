@@ -1,9 +1,8 @@
 import type { Report } from "../analyzer/analyzer.types";
 import type { ObserveOptions } from "../peer-monitor/peer-monitor.types";
+import { SDK_VERSION } from "../version";
 import type { ReportEnvelope } from "./reporter.types";
 
-/** SDK 버전 — 봉투에 실어 서버가 스키마 호환성 분기에 쓴다. */
-const SDK_VERSION = "0.1.0";
 /** 큐 상한 — 서버 다운으로 재시도가 쌓일 때 메모리 보호(초과 시 오래된 것 드롭). */
 const MAX_QUEUE = 100;
 

@@ -1,8 +1,10 @@
-import { PeerMonitor, type ObserveOptions } from "./lib";
+import { PeerMonitor, type ObserveOptions, SDK_VERSION } from "./lib";
 
 export type { ObserveOptions };
 
 const PeerAnalyst = {
+  /** SDK 버전 (package.json 단일 소스). */
+  version: SDK_VERSION,
   monitors: new Map<RTCPeerConnection, PeerMonitor>(),
 
   /**
