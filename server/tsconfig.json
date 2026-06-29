@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": [
-      "ES2022",
-      "DOM",
-      "DOM.Iterable"
-    ],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "strict": true,
@@ -18,11 +14,13 @@
     "jsx": "react-jsx",
     "incremental": true,
     "resolveJsonModule": true,
+    // Turbopack(next dev)은 baseUrl이 없으면 @/* 의 ./* 를 "불러온 파일 기준"으로
+    // 풀어 `../lib/...`로 깨진다. TS7에서 deprecate 예정이나 Next 번들러가 아직
+    // baseUrl에 의존하므로 유지한다.
     "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"]
     },
     "plugins": [
       {
@@ -39,7 +37,5 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }

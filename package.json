@@ -8,7 +8,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "build:app": "pnpm --filter @rtc/peer-analyst build",
-    "dev:app": "pnpm --filter @rtc/peer-analyst dev"
+    "build:server": "pnpm --filter @rtc/peer-analyst-dashboard build",
+    "dev:app": "pnpm --filter @rtc/peer-analyst dev",
+    "dev:server": "pnpm --filter @rtc/peer-analyst-dashboard dev"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -49,6 +49,7 @@ let receiver: RTCPeerConnection | null = null;
 
 const start = async () => {
   if (sender) return;
+
   const stream = makeVideoStream();
   sender = new RTCPeerConnection();
   receiver = new RTCPeerConnection();
@@ -56,14 +57,18 @@ const start = async () => {
 
   await connect(sender, receiver);
 
+  const serverUrl = document.getElementById("serverUrl")?.getAttribute("value");
+
   // 두 peer를 각각 observe — console + 화면 렌더 콜백.
   window.PeerAnalyst.observe(sender, {
+    serverUrl: serverUrl ?? undefined,
     peerId: "sender",
     console: true,
     interval: 1000,
     onReport: (r) => ($("sender-out").textContent = JSON.stringify(r, null, 2)),
   });
   window.PeerAnalyst.observe(receiver, {
+    serverUrl: serverUrl ?? undefined,
     peerId: "receiver",
     console: true,
     interval: 1000,
