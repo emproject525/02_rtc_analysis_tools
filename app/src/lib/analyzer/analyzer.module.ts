@@ -206,6 +206,22 @@ const buildSend = (
  * - seen엔 있는데 live엔 없는 ssrc → ended:true로 목록에 잔존
  * (replaceTrack은 ssrc 유지라 같은 항목으로 이어지고, 새 ssrc면 새 항목이 된다)
  */
+/**
+ * ended 트랙으로 표시한다. "현재 흐름"을 뜻하는 파생값(bitrate·손실률 등)은
+ * 더 이상 흐르지 않으므로 비운다(undefined). 누적/정적값(ssrc·codec·해상도 등)은
+ * 마지막 관측치로 남겨 둔다.
+ */
+const markEnded = (track: TrackReport): TrackReport => ({
+  ...track,
+  ended: true,
+  bitrate: undefined,
+  packetLossRate: undefined,
+  retransmissionRate: undefined,
+  fractionLost: undefined,
+  framesPerSecond: undefined,
+  jitterBufferDelay: undefined,
+});
+
 const mergeLifecycle = (
   seen: Map<number, TrackReport>,
   live: TrackReport[],
@@ -219,7 +235,7 @@ const mergeLifecycle = (
 
   const out: TrackReport[] = [];
   for (const [ssrc, track] of seen) {
-    out.push(liveSsrc.has(ssrc) ? track : { ...track, ended: true });
+    out.push(liveSsrc.has(ssrc) ? track : markEnded(track));
   }
   // ssrc가 없어 생명주기 추적이 안 되는 트랙도 누락 없이 포함.
   for (const track of live) {

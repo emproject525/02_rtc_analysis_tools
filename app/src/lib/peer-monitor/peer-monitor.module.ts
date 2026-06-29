@@ -14,7 +14,8 @@ export class PeerMonitor {
   private readonly _collector: Collector;
   private readonly _analyzer: Analyzer;
   private readonly _reporter: Reporter;
-  private readonly _timer: ReturnType<typeof setInterval>;
+  private _timer: ReturnType<typeof setTimeout> | undefined;
+  private _disposed = false;
   /** observe 시작 시각 (epoch ms) — 연결 지속시간 계산 기준. */
   readonly startedAt = Date.now();
 
@@ -26,8 +27,30 @@ export class PeerMonitor {
     this._collector = new Collector(peer);
     this._analyzer = new Analyzer();
     this._reporter = new Reporter(options);
-    this._timer = setInterval(this._tick, options.interval ?? DEFAULT_INTERVAL);
+    this._scheduleNext();
   }
+
+  /**
+   * 다음 폴링을 예약한다. setInterval 대신 tick 완료 후 재예약하는 방식이라,
+   * getStats가 interval보다 오래 걸려도 tick이 겹쳐 돌지 않는다(drain·미분 경합 방지).
+   */
+  private _scheduleNext = () => {
+    if (this._disposed) return;
+    this._timer = setTimeout(
+      this._runTick,
+      this.options.interval ?? DEFAULT_INTERVAL,
+    );
+  };
+
+  private _runTick = async () => {
+    try {
+      await this._tick();
+    } catch {
+      // tick 실패해도 다음 폴링은 계속 예약한다.
+    } finally {
+      this._scheduleNext();
+    }
+  };
 
   /** 폴링 1회: 수집 → 가공 → 출력. */
   private _tick = async () => {
@@ -44,7 +67,8 @@ export class PeerMonitor {
 
   /** 감시 종료 — 마지막 폴링으로 잔여 전이 flush + 타이머/리스너 정리. */
   dispose = async () => {
-    clearInterval(this._timer);
+    this._disposed = true;
+    clearTimeout(this._timer);
     // 직전 collect 이후 버퍼에 쌓인 상태 전이/ICE 에러까지 마지막으로 내보낸다.
     try {
       await this._tick();

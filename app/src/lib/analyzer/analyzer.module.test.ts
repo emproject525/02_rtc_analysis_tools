@@ -264,6 +264,30 @@ describe("Analyzer.analyze", () => {
     expect(r.recv[0].ended).toBe(false); // 살아있는 트랙
   });
 
+  it("ended 트랙은 직전 흐름 파생값(bitrate 등)을 비운다", () => {
+    const analyzer = new Analyzer();
+    analyzer.analyze(
+      sample(1000, report([...pathRecords(), outbound(2000, 50)])),
+      "peer-1",
+      0,
+    );
+    // 2틱: 살아있어 bitrate가 계산됨
+    const live = analyzer.analyze(
+      sample(3000, report([...pathRecords(), outbound(2_252_000, 150)])),
+      "peer-1",
+      0,
+    );
+    expect(live.send[0].bitrate).toBe(9_000_000);
+    // 3틱: 사라짐 → ended, 흐름 파생값은 비워짐
+    const ended = analyzer.analyze(
+      sample(5000, report([...pathRecords(), inbound(1000, 100, 5)])),
+      "peer-1",
+      0,
+    );
+    expect(ended.send[0].ended).toBe(true);
+    expect(ended.send[0].bitrate).toBeUndefined();
+  });
+
   it("reset 후에는 ended 잔존 항목이 비워진다", () => {
     const analyzer = new Analyzer();
     analyzer.analyze(
