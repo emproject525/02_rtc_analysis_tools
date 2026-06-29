@@ -57,7 +57,10 @@ const start = async () => {
 
   await connect(sender, receiver);
 
-  const serverUrl = document.getElementById("serverUrl")?.getAttribute("value");
+  // 라이브 입력값(.value)을 읽는다. getAttribute("value")는 초기 속성만 읽혀 타이핑 반영 안 됨.
+  const serverUrl =
+    (document.getElementById("serverUrl") as HTMLInputElement | null)?.value ||
+    undefined;
 
   // 두 peer를 각각 observe — console + 화면 렌더 콜백.
   window.PeerAnalyst.observe(sender, {

@@ -33,13 +33,11 @@ export const GET = (req: Request) => {
       };
       // 연결 직후 현재 상태 1회 (없으면 다음 Report까지 빈 화면).
       send(frame("snapshot", hub.snapshot()));
-      unsub = hub.subscribe((e) =>
-        send(
-          e.kind === "report"
-            ? frame("report", e.report)
-            : frame("gone", { peerId: e.peerId }),
-        ),
-      );
+      unsub = hub.subscribe((e) => {
+        if (e.kind === "report") send(frame("report", e.report));
+        else if (e.kind === "ended") send(frame("ended", { peerId: e.peerId }));
+        else send(frame("gone", { peerId: e.peerId }));
+      });
       // keep-alive 주석 핑 — 프록시 idle 타임아웃 방지.
       ping = setInterval(() => send(": ping\n\n"), 15_000);
     },

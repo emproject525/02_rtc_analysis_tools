@@ -2,14 +2,23 @@ import type { Report } from "@rtc/peer-analyst";
 
 /** peer당 series ring buffer 크기 (2초 간격이면 ~10분치). */
 const SERIES_MAX = 300;
-/** 무수신 evict TTL. */
+/** 무수신 → ended 표시 TTL. */
 const STALE_MS = 30_000;
-/** stale 점검 주기. */
+/** ended 점검 주기. */
 const SWEEP_MS = 10_000;
+/** 보관 peer 상한 — 초과 시 가장 오래 ended된 peer부터 실제 제거(gone). */
+const MAX_PEERS = 100;
 
 export type HubEvent =
   | { kind: "report"; report: Report }
+  | { kind: "ended"; peerId: string }
   | { kind: "gone"; peerId: string };
+
+/** SSE 초기 스냅샷 1건 — peer의 현재값 + ended 여부. */
+export interface SnapshotEntry {
+  report: Report;
+  ended: boolean;
+}
 
 type Listener = (event: HubEvent) => void;
 
@@ -18,13 +27,18 @@ interface PeerEntry {
   latest: Report;
   /** 최근 N개 롤링 윈도우 — 그래프용. */
   series: Report[];
-  /** 마지막 수신 시각 (Date.now) — stale evict 기준. */
+  /** 마지막 수신 시각 (Date.now). */
   lastSeenAt: number;
+  /** ended로 표시된 시각. 살아있으면 undefined. */
+  endedAt?: number;
 }
 
 /**
  * 수집한 Report를 메모리에 모으고 SSE 구독자에게 브로드캐스트한다.
  * docs/02_server.md "hub" 참고. 단일 프로세스 전제(globalThis 싱글톤).
+ *
+ * 무수신 peer는 제거하지 않고 ended로 표시해 목록에 남긴다(끊긴 연결도 추적).
+ * 실제 제거(gone)는 보관 상한(MAX_PEERS)을 넘을 때 오래 ended된 것부터.
  */
 class Hub {
   private readonly _peers = new Map<string, PeerEntry>();
@@ -40,20 +54,25 @@ class Hub {
       entry.series.push(report);
       if (entry.series.length > SERIES_MAX) entry.series.shift();
       entry.lastSeenAt = now;
+      entry.endedAt = undefined; // 다시 수신되면 부활.
     } else {
       this._peers.set(report.peerId, {
         latest: report,
         series: [report],
         lastSeenAt: now,
       });
+      this._evictIfOverCap();
     }
     this._emit({ kind: "report", report });
     this._ensureSweep();
   };
 
-  /** 현재 모든 peer의 latest (SSE 초기 스냅샷). */
-  snapshot = (): Report[] =>
-    Array.from(this._peers.values(), (entry) => entry.latest);
+  /** 현재 모든 peer의 latest + ended 여부 (SSE 초기 스냅샷). */
+  snapshot = (): SnapshotEntry[] =>
+    Array.from(this._peers.values(), (entry) => ({
+      report: entry.latest,
+      ended: entry.endedAt != null,
+    }));
 
   /** SSE 구독. 해제 함수를 돌려준다. */
   subscribe = (fn: Listener): (() => void) => {
@@ -73,14 +92,33 @@ class Hub {
     this._sweepTimer = setInterval(this._sweep, SWEEP_MS);
   };
 
-  /** TTL 지난 peer를 evict하고 gone 통지. */
+  /** TTL 지난 peer를 ended로 표시(유지). 제거는 안 한다. */
   private _sweep = () => {
     const now = Date.now();
     for (const [peerId, entry] of this._peers) {
-      if (now - entry.lastSeenAt > STALE_MS) {
-        this._peers.delete(peerId);
-        this._emit({ kind: "gone", peerId });
+      if (entry.endedAt == null && now - entry.lastSeenAt > STALE_MS) {
+        entry.endedAt = now;
+        this._emit({ kind: "ended", peerId });
       }
+    }
+  };
+
+  /** 보관 상한 초과 시 가장 오래 ended된 peer부터 제거(gone). */
+  private _evictIfOverCap = () => {
+    while (this._peers.size > MAX_PEERS) {
+      let victim: string | undefined;
+      let oldest = Infinity;
+      for (const [peerId, entry] of this._peers) {
+        // ended된 것 우선, 그중 가장 오래된 것. (ended가 없으면 가장 오래된 수신)
+        const rank = entry.endedAt ?? entry.lastSeenAt;
+        if (rank < oldest) {
+          oldest = rank;
+          victim = peerId;
+        }
+      }
+      if (victim == null) break;
+      this._peers.delete(victim);
+      this._emit({ kind: "gone", peerId: victim });
     }
   };
 }
