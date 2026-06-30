@@ -1,6 +1,13 @@
 #!/bin/sh
 
-pnpm build
+# nvm 로드 후 .nvmrc의 Node 버전 적용.
+# IDE GUI 커밋 등 nvm을 안 불러오는 환경에서도 시스템 Node(구버전)가 아니라
+# 프로젝트가 요구하는 Node로 pnpm을 돌리기 위함. (pnpm 11은 Node >=22.13 필요)
+export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" --no-use
+nvm use >/dev/null 2>&1 || true
+
+pnpm -r build
 status=$?
 
 if [ $status -ne 0 ]; then
