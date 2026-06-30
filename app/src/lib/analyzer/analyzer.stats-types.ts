@@ -1,7 +1,7 @@
 /**
  * getStats()가 돌려주는 RTCStatsReport는 `Map<string, any>`라 값이 `any`다.
- * 분석에 쓰는 레코드만 type별로 좁힌 "타입 뷰" — docs `01_stats_dashboard.md`
- * B 섹션 기준. 브라우저별 가용성이 갈리므로 베이스 외 모든 필드는 optional.
+ * 분석에 쓰는 레코드만 type별로 좁힌 "타입 뷰". 파생 지표는 okf `sdk/metrics/`
+ * 참고. 브라우저별 가용성이 갈리므로 베이스 외 모든 필드는 optional.
  */
 
 /** 모든 getStats 레코드 공통 필드. */

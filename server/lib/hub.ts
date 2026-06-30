@@ -35,7 +35,7 @@ interface PeerEntry {
 
 /**
  * 수집한 Report를 메모리에 모으고 SSE 구독자에게 브로드캐스트한다.
- * docs/02_server.md "hub" 참고. 단일 프로세스 전제(globalThis 싱글톤).
+ * okf `server/modules/hub` 참고. 단일 프로세스 전제(globalThis 싱글톤).
  *
  * 무수신 peer는 제거하지 않고 ended로 표시해 목록에 남긴다(끊긴 연결도 추적).
  * 실제 제거(gone)는 보관 상한(MAX_PEERS)을 넘을 때 오래 ended된 것부터.

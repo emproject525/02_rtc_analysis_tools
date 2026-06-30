@@ -1,5 +1,5 @@
 /**
- * docs `01_stats_dashboard.md` D 섹션 — getStats 누적값을 직전 폴링과 미분해
+ * okf `sdk/metrics/` 참고 — getStats 누적값을 직전 폴링과 미분해
  * "현재" 값으로 바꾸는 순수 계산. 모두 ssrc 단위로 prev와 짝지어 호출한다.
  *
  * - `미분` 순간적인 변화율을 구하는 것
