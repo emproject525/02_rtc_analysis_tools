@@ -4,28 +4,43 @@
  * observe()로 collector→analyzer→reporter 파이프라인을 눈으로 확인한다.
  *
  * `pnpm dev`로 띄운 뒤 [start]를 누르면 sender/receiver 두 peer의 Report가
- * 콘솔과 화면에 실시간으로 찍힌다. 카메라 권한을 피하려고 canvas 캡처를 쓴다.
+ * 콘솔과 화면에 실시간으로 찍힌다. 권한을 피하려고 video는 canvas 캡처,
+ * audio는 WebAudio 오실레이터로 만든다.
+ *
+ * sender는 한 연결에 트랙 3개를 전송한다: canvas video ×2 + audio ×1.
  */
 import "./index";
 
 const $ = (id: string) => document.getElementById(id) as HTMLElement;
 
-/** 권한 없이 영상 트랙을 만든다 — canvas에 매 프레임 그려 captureStream. */
-const makeVideoStream = (): MediaStream => {
+/** 권한 없이 영상 트랙 1개 — canvas에 매 프레임 그려 captureStream. */
+const makeVideoTrack = (label: string, hueStart: number): MediaStreamTrack => {
   const canvas = document.createElement("canvas");
   canvas.width = 320;
   canvas.height = 240;
   const ctx = canvas.getContext("2d")!;
-  let hue = 0;
+  let hue = hueStart;
   setInterval(() => {
     hue = (hue + 4) % 360;
     ctx.fillStyle = `hsl(${hue} 70% 50%)`;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "#fff";
-    ctx.font = "24px sans-serif";
+    ctx.font = "20px sans-serif";
+    ctx.fillText(label, 10, 30);
     ctx.fillText(new Date().toISOString().slice(11, 23), 10, 130);
   }, 100);
-  return canvas.captureStream(10);
+  return canvas.captureStream(10).getVideoTracks()[0];
+};
+
+/** 권한 없이 오디오 트랙 1개 — 오실레이터를 MediaStream으로. */
+const makeAudioTrack = (): MediaStreamTrack => {
+  const ctx = new AudioContext();
+  const osc = ctx.createOscillator();
+  const dest = ctx.createMediaStreamDestination();
+  osc.frequency.value = 440;
+  osc.connect(dest);
+  osc.start();
+  return dest.stream.getAudioTracks()[0];
 };
 
 /** 같은 페이지 안에서 두 peer를 직접 시그널링으로 연결한다. */
@@ -50,10 +65,16 @@ let receiver: RTCPeerConnection | null = null;
 const start = async () => {
   if (sender) return;
 
-  const stream = makeVideoStream();
+  // sender는 한 연결에 3개 트랙 전송: canvas video ×2 + oscillator audio ×1.
+  const tracks = [
+    makeVideoTrack("video-1", 0),
+    makeVideoTrack("video-2", 180),
+    makeAudioTrack(),
+  ];
+  const stream = new MediaStream(tracks);
   sender = new RTCPeerConnection();
   receiver = new RTCPeerConnection();
-  for (const track of stream.getTracks()) sender.addTrack(track, stream);
+  for (const track of tracks) sender.addTrack(track, stream);
 
   await connect(sender, receiver);
 
