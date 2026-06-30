@@ -11,6 +11,18 @@ timestamp: 2026-06-29T00:00:00Z
 
 `import "peer-analyst"` 하면 `window.PeerAnalyst` 전역이 주입되고, `observe(peer, options)`로 `RTCPeerConnection`을 감시한다. 내부 4개 레이어를 peer-monitor가 오케스트레이션한다(기본 2초 폴링, 재귀 setTimeout으로 오버랩 방지).
 
+# 공개 API (`window.PeerAnalyst`)
+
+| 멤버                            | 설명                                                       |
+| ------------------------------- | ---------------------------------------------------------- |
+| `observe(peer, options?)`       | 감시 시작. peer당 멱등(이미 있으면 기존 monitor 반환).     |
+| `unobserve(peer)`               | 감시 종료(마지막 flush 후 정리).                           |
+| `close()`                       | 모든 peer 감시 종료.                                       |
+| `version`                       | SDK 버전 (package.json 단일 소스).                         |
+| `monitors`                      | `Map<RTCPeerConnection, PeerMonitor>` (내부 추적).         |
+
+ESM(`import`)과 IIFE(`<script>` 전역) 둘 다 제공. 옵션 계약은 [ObserveOptions](schemas/observe-options.md).
+
 # 파이프라인
 
 수집 → 가공 → 전송:

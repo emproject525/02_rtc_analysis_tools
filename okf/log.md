@@ -8,3 +8,4 @@
 - **Update**: 조직 규칙 확정 — 코드 패키지에 묶이는 지식은 `<영역>/<종류>/`, 안 묶이는 지식은 루트 `<종류>/`. (`shared` 영역은 코드 관점이라 폐기)
 - **Update**: `docs/` → okf 완전 이관. 빠진 개념 채움 — `architecture/system`, `references/okf`, sdk `metrics`(4)·`peer-monitor`·`decisions`(3), server `modules/hub`·`decisions`(4). 코드 주석의 docs 참조를 okf 경로로 갱신, `docs/` 제거.
 - **Update**: `schema` type 추가 + `sdk/schemas/report.md`(Report/Envelope/TrackReport/TransportReport). collect·stream의 `Report` 참조를 스키마 개념으로 링크.
+- **Update**: 개발 토대 보강 — schemas(observe-options·raw-sample·stats-view), sdk/architecture에 공개 API 표, architecture/system에 실행·개발 섹션, decisions/collector-partial-failure, references(webrtc-internals·webrtc-stats).
