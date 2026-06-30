@@ -22,5 +22,5 @@ timestamp: 2026-06-30T00:00:00Z
 - 손실 없이 bitrate만 0에 수렴 → 트랙 mute/정지 또는 곧 ended.
 
 # 관련
-- 지표 산출: [sdk/modules/analyzer](../../sdk/modules/analyzer.md)
-- 관측 화면: [server/pages/dashboard](../../server/pages/dashboard.md)
+- 지표 산출: [sdk/modules/analyzer](../sdk/modules/analyzer.md)
+- 관측 화면: [server/pages/dashboard](../server/pages/dashboard.md)

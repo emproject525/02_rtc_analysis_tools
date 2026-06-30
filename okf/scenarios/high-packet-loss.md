@@ -21,5 +21,5 @@ recv `packetLossRate` 또는 send `fractionLost`(상대측 보고) 상승.
 - 손실인데 nack 없음 → 측정 구간 경계/카운터 리셋일 수 있음 (파생값이 undefined로 빠지는 구간인지 확인).
 
 # 관련
-- 손실률/재전송률 계산: [sdk/modules/analyzer](../../sdk/modules/analyzer.md)
-- 관측 화면: [server/pages/dashboard](../../server/pages/dashboard.md)
+- 손실률/재전송률 계산: [sdk/modules/analyzer](../sdk/modules/analyzer.md)
+- 관측 화면: [server/pages/dashboard](../server/pages/dashboard.md)

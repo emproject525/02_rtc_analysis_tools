@@ -22,5 +22,5 @@ timestamp: 2026-06-30T00:00:00Z
 - 트랙 ended는 흐름 파생값(bitrate 등)이 비워지고 마지막 누적값만 남는다.
 
 # 관련
-- ended 정책: [server/architecture](../../server/architecture.md) hub
-- 트랙 생명주기: [sdk/modules/analyzer](../../sdk/modules/analyzer.md)
+- ended 정책: [server/architecture](../server/architecture.md) hub
+- 트랙 생명주기: [sdk/modules/analyzer](../sdk/modules/analyzer.md)
