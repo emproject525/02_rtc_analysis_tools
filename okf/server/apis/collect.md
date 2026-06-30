@@ -9,7 +9,7 @@ timestamp: 2026-06-29T00:00:00Z
 
 # 계약
 
-- 본문: [Report](../../sdk/schemas/report.md) 봉투 — `{ sentAt, sdkVersion, reports: Report[] }`
+- 본문: [Report](../../sdk/schemas/report.md) 봉투
 - 성공 `204 No Content`, 봉투 형식 오류 `400`
 - 인증 토큰은 **검증하지 않음**(non-goal) — 통과
 - `reports`를 순회해 hub에 push
