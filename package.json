@@ -9,7 +9,7 @@
     "format:check": "prettier --check .",
     "build:app": "pnpm --filter @rtc/peer-analyst build",
     "build:server": "pnpm --filter @rtc/peer-analyst-dashboard build",
-    "build": "pnpm build:app && pnpm build:server",
+    "build": "pnpm -r build",
     "dev:app": "pnpm --filter @rtc/peer-analyst dev",
     "dev:server": "pnpm --filter @rtc/peer-analyst-dashboard dev",
     "prepare": "git config core.hooksPath .githooks"
